@@ -69,18 +69,21 @@ app.get("/", (req, res) => {
 app.get("/users", (req, res) => { // Optional query search
     const name = req.query.name;
     const job = req.query.job;
+
+    if (req.query.name === undefined && req.query.job === undefined) {
+        res.send(users)
+    }
+    let result = users;
+
     if (name != undefined) {
-        let result = findUserByName(name);
-        result = { users_list: result };
-        res.send(result);
+        let result1 = findUserByName(name);
+        result = result && result1;
     }
-    else if (job != undefined) {
-        let result = findUserByJob(job);
-        result = { users_list: result };
-        res.send(result);
-    } else {
-        res.send(users);
+    if (job != undefined) {
+        let result2 = findUserByJob(job);
+        result = result && result2;
     }
+    res.send({users_list: result});
 });
 
 app.post("/users", (req, res) => {
