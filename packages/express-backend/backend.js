@@ -70,10 +70,7 @@ app.get("/users", (req, res) => { // Optional query search
     const name = req.query.name;
     const job = req.query.job;
 
-    if (req.query.name === undefined && req.query.job === undefined) {
-        res.send(users)
-    }
-    let result = users;
+    let result = users["users_list"];
 
     if (name != undefined) {
         let result1 = findUserByName(name);
