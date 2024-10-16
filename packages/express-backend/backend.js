@@ -78,11 +78,11 @@ app.get("/users", (req, res) => { // Optional query search
 
     let result = users["users_list"];
 
-    if (name != undefined) {
+    if (name !== undefined) {
         let result1 = findUserByName(name);
         result = result && result1;
     }
-    if (job != undefined) {
+    if (job !== undefined) {
         let result2 = findUserByJob(job);
         result = result && result2;
     }
@@ -90,23 +90,23 @@ app.get("/users", (req, res) => { // Optional query search
 });
 
 app.post("/users", (req, res) => {
-    const userToAdd = req.body;
-    console.log(req.body);
+    let userToAdd;
 
-    if (userToAdd.id) {
+    if (req.body.id) {
+        userToAdd = req.body
         addUser(userToAdd);
     }
 
     else {
-        addUser({
+        userToAdd = {
             "id": generateId(),
-            "name": userToAdd.name,
-            "job": userToAdd.job
-        })
+            "name": req.body.name,
+            "job": req.body.job
+        }
+        addUser(userToAdd)
     }
 
-    res.status(201).send();
-    res.send();
+    res.status(201).send(userToAdd);
 });
 
 
