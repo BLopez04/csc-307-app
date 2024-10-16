@@ -61,6 +61,10 @@ const removeUser = (id) =>{
     }
 }
 
+const generateId = () => {
+    return String(Math.floor(Math.random()*1000000)) ;
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -87,7 +91,21 @@ app.get("/users", (req, res) => { // Optional query search
 
 app.post("/users", (req, res) => {
     const userToAdd = req.body;
-    addUser(userToAdd);
+    console.log(req.body);
+
+    if (userToAdd.id) {
+        addUser(userToAdd);
+    }
+
+    else {
+        addUser({
+            "id": generateId(),
+            "name": userToAdd.name,
+            "job": userToAdd.job
+        })
+    }
+
+    res.status(201).send();
     res.send();
 });
 
