@@ -15,7 +15,7 @@ function MyApp() {
 
         setCharacters(updated);
 
-        const promise = fetch(`Http://localhost:8000/users/${char.id}`, {
+        const promise = fetch(`Http://localhost:8000/users/${char._id}`, {
             method: "DELETE",
         }).then();
 
