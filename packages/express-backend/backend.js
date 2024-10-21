@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import userService from "./services/user-service.js";
-const { addUser, getUsers, findUserById, findUserByName, findUserByJob } = userService;
+const { addUser, getUsers, findUserById, findUserByName, findUserByJob, deleteUser } = userService;
 
 dotenv.config();
 
@@ -18,46 +18,7 @@ mongoose
 
 const app = express();
 const port = 8000;
-const users = {
-    users_list: [
-        {
-            id: "xyz789",
-            name: "Charlie",
-            job: "Janitor"
-        },
-        {
-            id: "abc123",
-            name: "Mac",
-            job: "Bouncer"
-        },
-        {
-            id: "ppp222",
-            name: "Mac",
-            job: "Professor"
-        },
-        {
-            id: "yat999",
-            name: "Dee",
-            job: "Aspring actress"
-        },
-        {
-            id: "zap555",
-            name: "Dennis",
-            job: "Bartender"
-        }
-    ]
-};
 
-const removeUser = (id) =>{
-    const idx = users["users_list"].indexOf(findUserById(id))
-    if (idx !== -1) {
-        users["users_list"].splice(idx, 1)
-    }
-}
-
-const generateId = () => {
-    return String(Math.floor(Math.random()*1000000)) ;
-}
 
 app.use(cors());
 app.use(express.json());
@@ -84,30 +45,14 @@ app.get("/users", (req, res) => { // Optional query search
 });
 
 app.post("/users", (req, res) => {
-    let userToAdd;
-    let promise;
-
-    if (req.body.id) {
-        userToAdd = req.body
-        promise = addUser(userToAdd);
-    }
-
-    else {
-        userToAdd = {
-            "id": generateId(),
-            "name": req.body.name,
-            "job": req.body.job
-        }
-        promise = addUser(userToAdd)
-    }
-
-    res.status(201).send(promise.then((res) => res.json())
-        .then(((json) => json)));
+    const userToAdd = req.body;
+    addUser(userToAdd)
+        .then((result) => res.status(201).send(result));
 });
 
 
 app.get("/users/:id", (req, res) => { //Specific link
-    const id = req.params["id"]; //or req.params.id
+    const id = req.params["id"];
     findUserById(id)
         .then((result) => {
             if (result) {
@@ -124,8 +69,7 @@ app.get("/users/:id", (req, res) => { //Specific link
 
 app.delete("/users/:id", (req, res) => {
     const id = req.params["id"];
-    removeUser(id);
-    res.send();
+    deleteUser(id).then((result) => res.send());
 })
 
 
