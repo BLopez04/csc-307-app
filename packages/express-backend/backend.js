@@ -1,6 +1,20 @@
 // backend.js
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+
+import userService from "./services/user-service.js";
+const { addUser, getUsers, findUserById, findUserByName, findUserByJob } = userService;
+
+dotenv.config();
+
+const { MONGO_CONNECTION_STRING } = process.env;
+
+mongoose.set("debug", true);
+mongoose
+    .connect(MONGO_CONNECTION_STRING)
+    .catch((error) => console.log(error));
 
 const app = express();
 const port = 8000;
@@ -34,26 +48,6 @@ const users = {
     ]
 };
 
-const findUserByName = (name) => {
-    return users["users_list"].filter(      // filter since this is for a query
-        (user) => user["name"] === name
-    );
-};
-
-const findUserByJob = (job) => {
-    return users["users_list"].filter(      // filter since this is for a query
-        (user) => user["job"] === job
-    );
-};
-
-const findUserById = (id) =>           // find since this is for a specific one
-    users["users_list"].find((user) => user["id"] === id);
-
-const addUser = (user) => {
-    users["users_list"].push(user);
-    return user;
-};
-
 const removeUser = (id) =>{
     const idx = users["users_list"].indexOf(findUserById(id))
     if (idx !== -1) {
@@ -75,26 +69,27 @@ app.get("/", (req, res) => {
 app.get("/users", (req, res) => { // Optional query search
     const name = req.query.name;
     const job = req.query.job;
+    console.log(name);
+    console.log(job);
 
-    let result = users["users_list"];
+    getUsers(name, job)
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((error) => {
+            res.status(500).send(error.name);
+        })
 
-    if (name !== undefined) {
-        let result1 = findUserByName(name);
-        result = result && result1;
-    }
-    if (job !== undefined) {
-        let result2 = findUserByJob(job);
-        result = result && result2;
-    }
-    res.send({users_list: result});
+
 });
 
 app.post("/users", (req, res) => {
     let userToAdd;
+    let promise;
 
     if (req.body.id) {
         userToAdd = req.body
-        addUser(userToAdd);
+        promise = addUser(userToAdd);
     }
 
     else {
@@ -103,22 +98,29 @@ app.post("/users", (req, res) => {
             "name": req.body.name,
             "job": req.body.job
         }
-        addUser(userToAdd)
+        promise = addUser(userToAdd)
     }
 
-    res.status(201).send(userToAdd);
+    res.status(201).send(promise.then((res) => res.json())
+        .then(((json) => json)));
 });
 
 
 app.get("/users/:id", (req, res) => { //Specific link
     const id = req.params["id"]; //or req.params.id
-    let result = findUserById(id);
-    if (result === undefined) {
-        res.status(404).send("Resource not found.");
-    } else {
-        res.send(result);
-    }
+    findUserById(id)
+        .then((result) => {
+            if (result) {
+                res.send(result);
+            } else {
+                res.status(404).send(`Not Found: ${id}`);
+            }
+        })
+        .catch((error) => {
+            res.status(500).send(error.name);
+        });
 });
+
 
 app.delete("/users/:id", (req, res) => {
     const id = req.params["id"];
