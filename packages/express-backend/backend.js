@@ -35,7 +35,7 @@ app.get("/users", (req, res) => { // Optional query search
 
     getUsers(name, job)
         .then((result) => {
-            res.send({user_list: result});
+            res.send({users_list: result});
         })
         .catch((error) => {
             res.status(500).send(error.name);
